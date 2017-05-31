@@ -43,7 +43,6 @@ private:
 	std::string GetResponseForValidGetRequest(const httpparser::Request &m_request) const;
 
 	std::unique_ptr<CSocketImpl> m_socket;
-	std::unique_ptr<CFileListMakerImpl> m_fileListMaker;
 
 };
 

@@ -11,7 +11,6 @@ CSocketImpl::CSocketImpl():
 	CreateSocket();
 	BindSocket();
 	InitSocket();
-	std::cout << "socket ready\n";
 }
 
 int CSocketImpl::GetListenSocket() const
@@ -25,12 +24,11 @@ CSocketImpl::~CSocketImpl()
 	closesocket(m_listenSocket);
 	freeaddrinfo(m_addr);
 	WSACleanup();
-	std::cout << "socket delete\n";
 }
 
 void CSocketImpl::InitSocketsLibrary()
 {
-	if (0 != WSAStartup(MAKEWORD(2, 2), &m_wsaData))
+	if (WSAStartup(MAKEWORD(2, 2), &m_wsaData) != 0)
 	{
 		throw std::runtime_error("WSAStartup failed");
 	}
@@ -48,9 +46,8 @@ void CSocketImpl::InitHints()
 
 void CSocketImpl::InitAddr()
 {
-	if (0 != getaddrinfo("0.0.0.0", "80", &m_hints, &m_addr))
+	if (getaddrinfo("0.0.0.0", "80", &m_hints, &m_addr) != 0)
 	{
-		//WSACleanup();
 		throw std::runtime_error("getaddrinfo failed");
 	}
 }
@@ -58,31 +55,24 @@ void CSocketImpl::InitAddr()
 void CSocketImpl::CreateSocket()
 {
 	m_listenSocket = socket(m_addr->ai_family, m_addr->ai_socktype, m_addr->ai_protocol);
-	if (INVALID_SOCKET == m_listenSocket)
+	if (m_listenSocket == INVALID_SOCKET)
 	{
-		//freeaddrinfo(m_addr);
-		//WSACleanup();
 		throw std::runtime_error("Creating of socket failed:" + WSAGetLastError());
 	}
 }
 
 void CSocketImpl::BindSocket()
 {
-	if (SOCKET_ERROR == bind(m_listenSocket, m_addr->ai_addr, (int)m_addr->ai_addrlen))
+	if (bind(m_listenSocket, m_addr->ai_addr, (int)m_addr->ai_addrlen) == SOCKET_ERROR)
 	{
-		//freeaddrinfo(m_addr);
-		//closesocket(m_listenSocket);
-		//WSACleanup();
 		throw std::runtime_error("bind failed with error: " + WSAGetLastError());
 	}
 }
 
 void CSocketImpl::InitSocket()
 {
-	if (SOCKET_ERROR == listen(m_listenSocket, SOMAXCONN))
+	if (listen(m_listenSocket, SOMAXCONN) == SOCKET_ERROR)
 	{
-		//closesocket(m_listenSocket);
-		//WSACleanup();
 		throw std::runtime_error("listen failed with error: " + WSAGetLastError());
 	}
 }

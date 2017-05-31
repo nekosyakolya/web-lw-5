@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "Server.h"
 #include "SocketImpl.h"
-#include "ParserImpl.h"
-#include "FileListMakerImpl.h"
 
 #include <iostream>
 #include <fstream>
@@ -58,12 +56,6 @@ void GetAllFiles(std::vector<fs::path>&files, const fs::path & directoryPath)
 	for (auto file : subFiles)
 	{
 		files.push_back(file);
-
-		//мб убрать?
-		/*if (fs::is_directory(file) && !fs::is_symlink(file))
-		{
-			GetAllFiles(files, file);
-		}*/
 	}
 }
 
@@ -108,80 +100,57 @@ std::string DirectoryToJson(const std::string & path)
 CServer::CServer():
 	m_socket(new CSocketImpl)
 {
-
-	std::cout << "server ready\n";
 }
 
 void CServer::ProcessRequests()
 {
-	const int max_client_buffer_size = 1024;
-	char buf[max_client_buffer_size];
-	//int client_socket = INVALID_SOCKET;
-
+	const int MAX_CLIENT_BUF_SIZE = 1024;
+	char buf[MAX_CLIENT_BUF_SIZE];
+	
 	for (;;)
 	{
-		// Принимаем входящие соединения
-		int client_socket = accept(m_socket->GetListenSocket(), NULL, NULL);
-		if (client_socket == INVALID_SOCKET)
+		int clientSocket = accept(m_socket->GetListenSocket(), NULL, NULL);
+		if (clientSocket == INVALID_SOCKET)
 		{
-			//kidaem iskl
+			throw std::runtime_error("accept failed: " + WSAGetLastError());
 		}
 
-		int result = recv(client_socket, buf, max_client_buffer_size - 1, 0);
+		int result = recv(clientSocket, buf, MAX_CLIENT_BUF_SIZE - 1, 0);
 
-		std::string response; // сюда будет записываться ответ клиенту
-		//std::string response_body; // тело ответа
-
+		std::string response;
 		if (result == SOCKET_ERROR)
 		{
-			// ошибка получения данных
-			//iskl
-		}
-		else if (result == 0)
-		{
-			// соединение закрыто клиентом
-			//cerr << "connection closed...\n";
+			throw std::runtime_error("Receive failed: " + result);
 		}
 		else if (result > 0)
 		{
-			// Мы знаем размер полученных данных, поэтому ставим метку конца строки
-			// В буфере запроса.
+			if (result > MAX_CLIENT_BUF_SIZE)
+			{
+				throw std::logic_error("max size is" + MAX_CLIENT_BUF_SIZE);
+			}
+
 			buf[result] = '\0';
-
-
 			httpparser::Request m_request;
 			httpparser::HttpRequestParser m_parser;
-
-
 			response = (httpparser::HttpRequestParser::ParsingCompleted != m_parser.parse(m_request, buf, buf + strlen(buf))) ? FormResponse(400, "Text / plain", "bad request") : GetResponseForValidGetRequest(m_request);
 
-
-			// Отправляем ответ клиенту с помощью функции send
-			
-			if (send(client_socket, response.c_str(), response.length(), 0) == SOCKET_ERROR)
+			if (send(clientSocket, response.c_str(), response.length(), 0) == SOCKET_ERROR)
 			{
-				// произошла ошибка при отправле данных
-				//cerr << "send failed: " << WSAGetLastError() << "\n";
+				throw std::runtime_error("send failed:" + WSAGetLastError());
 			}
-			// Закрываем соединение к клиентом
-			closesocket(client_socket);
+			closesocket(clientSocket);
 		}
 	}
-
 }
-
 
 CServer::~CServer()
 {
-	std::cout << "server delete\n";
 }
 
 std::string CServer::ProcessGetRequest(const std::string & path) const
 {
 	std::string filePath = (path != "/") ? path.substr(1, path.length()) : path;
 	ReplaceSpaces(filePath);
-
-	
 	return (!IsExists(filePath)) ? GetResponseWhenIsNotExists(path) : GetResponseForGetRequest(filePath);
 	
 }
@@ -196,13 +165,12 @@ void CServer::ReplaceSpaces(std::string &path) const
 
 bool CServer::IsExists(const std::string & path) const
 {
-	return fs::exists(fs::path(path));//не рип
+	return fs::exists(fs::path(path));
 }
 
 std::string CServer::ProcessDeleteRequest(const std::string & path) const
 {
 	std::string response;
-
 	std::string filePath = path.substr(1, path.length());
 	ReplaceSpaces(filePath);
 

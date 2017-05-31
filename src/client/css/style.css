@@ -1,3 +1,10 @@
+
+body
+{
+    width: 100%;
+    margin: auto;
+}
+
 a, a:visited, a:hover, a:active
 {
     text-decoration: none;
@@ -27,7 +34,7 @@ ol, ul
     list-style: none;
     width: 400px;
     margin: 0;
-    border: 2px solid #000;
+    border: 1px solid #90e4c1;
 }
 
 .folders_list li
@@ -38,7 +45,7 @@ ol, ul
 
 .folders_list li:nth-child(odd)
 {
-    background: #fff;
+    background: #e49790;
 }
 
 .folders_list li:nth-child(even)
@@ -54,8 +61,8 @@ ol, ul
 .info_block
 {
     margin-top: 30px;
-    font: 16px Arial;
-    font-color: #999;
+    font: 18px Arial;
+    font-color: #000;
 }
 
 .response
