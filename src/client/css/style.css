@@ -1,0 +1,65 @@
+a, a:visited, a:hover, a:active
+{
+    text-decoration: none;
+}
+
+ol, ul
+{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.container
+{
+    width: 1200px;
+    margin: 0 auto;
+}
+
+.column
+{
+    width: 50%;
+    float: left;
+}
+
+.folders_list
+{
+    list-style: none;
+    width: 400px;
+    margin: 0;
+    border: 2px solid #000;
+}
+
+.folders_list li
+{
+    font: bold 16px Arial;
+    padding: 5px 0 5px 20px;
+}
+
+.folders_list li:nth-child(odd)
+{
+    background: #fff;
+}
+
+.folders_list li:nth-child(even)
+{
+    background: #90e4c1;
+}
+
+.delete_menu
+{
+    margin-top: 20px;
+}
+
+.info_block
+{
+    margin-top: 30px;
+    font: 16px Arial;
+    font-color: #999;
+}
+
+.response
+{
+    height: 50%;
+    width: 50%;
+}
